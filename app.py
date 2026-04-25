@@ -1,5 +1,9 @@
 import streamlit as st
 import database
+import importlib
+
+# Streamlit Cloudのモジュールキャッシュ起因のエラーを防ぐため、常に最新のモジュールを読み込む
+importlib.reload(database)
 
 st.set_page_config(page_title="Kanban Backlog", page_icon="📌", layout="wide")
 
