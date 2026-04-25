@@ -13,9 +13,23 @@ def init_db():
                 title TEXT NOT NULL,
                 status TEXT NOT NULL,
                 priority TEXT NOT NULL,
-                assignee TEXT NOT NULL
+                assignee TEXT NOT NULL,
+                due_date TEXT,
+                description TEXT
             )
         ''')
+        
+        # 既存テーブルへのカラム追加（エラー無視で対応）
+        try:
+            cursor.execute("ALTER TABLE tasks ADD COLUMN due_date TEXT")
+        except sqlite3.OperationalError:
+            pass
+            
+        try:
+            cursor.execute("ALTER TABLE tasks ADD COLUMN description TEXT")
+        except sqlite3.OperationalError:
+            pass
+            
         conn.commit()
 
 def get_tasks() -> list[dict]:
@@ -25,13 +39,13 @@ def get_tasks() -> list[dict]:
         cursor.execute("SELECT * FROM tasks")
         return [dict(row) for row in cursor.fetchall()]
 
-def add_task(title: str, priority: str, assignee: str):
+def add_task(title: str, priority: str, assignee: str, due_date: str = None, description: str = None):
     with sqlite3.connect(DB_FILE) as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO tasks (title, status, priority, assignee)
-            VALUES (?, 'To Do', ?, ?)
-        ''', (title, priority, assignee))
+            INSERT INTO tasks (title, status, priority, assignee, due_date, description)
+            VALUES (?, 'To Do', ?, ?, ?, ?)
+        ''', (title, priority, assignee, due_date, description))
         conn.commit()
 
 def update_task_status(task_id: int, new_status: str):
@@ -68,7 +82,7 @@ def get_tasks_csv() -> bytes:
     output = StringIO()
     if not tasks:
         writer = csv.writer(output)
-        writer.writerow(['id', 'title', 'status', 'priority', 'assignee'])
+        writer.writerow(['id', 'title', 'status', 'priority', 'assignee', 'due_date', 'description'])
     else:
         writer = csv.DictWriter(output, fieldnames=tasks[0].keys())
         writer.writeheader()

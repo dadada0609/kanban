@@ -38,6 +38,8 @@ def main():
         with st.form("add_task_form", clear_on_submit=True):
             title = st.text_input("タイトル")
             priority = st.selectbox("優先度", ["高", "中", "低"])
+            due_date = st.date_input("期限", value=None)
+            description = st.text_area("詳細メモ")
             assignee = st.text_input("担当者")
             submitted = st.form_submit_button("追加")
             
@@ -45,7 +47,8 @@ def main():
                 if title.strip() == "":
                     st.error("タイトルを入力してください。")
                 else:
-                    database.add_task(title.strip(), priority, assignee.strip())
+                    due_date_str = str(due_date) if due_date else ""
+                    database.add_task(title.strip(), priority, assignee.strip(), due_date_str, description.strip())
                     st.success("タスクを追加しました！")
                     st.rerun()
 
@@ -80,7 +83,15 @@ def main():
             for task in status_tasks:
                 with st.container(border=True):
                     st.markdown(f"**{task['title']}**")
-                    st.write(f"優先度: {task['priority']} | 担当者: {task['assignee']}")
+                    
+                    color_map = {"高": "red", "中": "orange", "低": "blue"}
+                    p_color = color_map.get(task['priority'], "gray")
+                    st.markdown(f"優先度: <span style='color:{p_color}; font-weight:bold;'>{task['priority']}</span> | 担当者: {task['assignee']}", unsafe_allow_html=True)
+                    
+                    if task.get('due_date'):
+                        st.write(f"📅 期限: {task['due_date']}")
+                    if task.get('description'):
+                        st.caption(f"📝 {task['description']}")
                     
                     # ステータス変更
                     new_status = st.selectbox(
