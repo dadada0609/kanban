@@ -53,19 +53,19 @@ def inject_custom_css():
 
     /* カード左端のAntigravity Blue線（ホバー時） */
     div[data-testid="stVerticalBlockBorderWrapper"]::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background-color: transparent;
-        transition: background-color 0.3s ease;
-        z-index: 10;
+        content: '' !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        width: 4px !important;
+        background-color: transparent !important;
+        transition: background-color 0.3s ease !important;
+        z-index: 10 !important;
     }
 
     div[data-testid="stVerticalBlockBorderWrapper"]:hover::before {
-        background-color: #00A3FF;
+        background-color: #00A3FF !important;
     }
 
     /* ヘッダーの非表示化などの不要な線の削除 */
@@ -76,11 +76,11 @@ def inject_custom_css():
     """
     st.markdown(css, unsafe_allow_html=True)
 
+# ページ設定の直後にCSSを注入
+inject_custom_css()
+
 def main():
     st.title("📌 Kanban Backlog Management")
-
-    # CSSスタイルの注入
-    inject_custom_css()
 
     # 初期化
     database.init_db()
