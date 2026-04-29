@@ -8,59 +8,63 @@ importlib.reload(database)
 st.set_page_config(page_title="Kanban Backlog", page_icon="📌", layout="wide")
 
 def inject_custom_css():
-    css = """
+    import datetime
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    css = f"""
     <style>
-    /* 全体背景と基本テキスト */
-    .stApp {
+    /* updated_at: {timestamp} */
+
+    /* 1. 全体背景 (Config.tomlの二重定義 + 広域ターゲット) */
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"], .stApp {{
         background-color: #F4F5F7 !important;
         color: #172B4D !important;
         font-family: 'Inter', system-ui, sans-serif !important;
-    }
+    }}
 
-    /* レーン（カラム）: 少し濃いグレー背景、パディング */
-    div[data-testid="stColumn"] {
+    /* 2. レーン（カラム）のUI設計 */
+    /* Streamlitのカラム要素全体を強制的に塗りつぶす */
+    [data-testid="stColumn"], div[data-testid="stColumn"] > div {{
         background-color: #EBECF0 !important;
         border-radius: 6px !important;
         padding: 8px !important;
-        margin-top: 16px !important;
-    }
+    }}
 
     /* カラムタイトルのフォント調整 */
-    div[data-testid="stColumn"] h3 {
+    [data-testid="stColumn"] h3 {{
         font-size: 14px !important;
         font-weight: 600 !important;
         color: #5E6C84 !important;
         margin-bottom: 12px !important;
         letter-spacing: normal !important;
-    }
+    }}
 
-    /* カード（st.container(border=True)のラッパー）: フラットデザイン、実用的な角丸 */
-    div[data-testid="stVerticalBlockBorderWrapper"] {
+    /* 3. タスクカードのUI設計 */
+    /* stVerticalBlockBorderWrapper または 内側のstVerticalBlock を狙う */
+    [data-testid="stVerticalBlockBorderWrapper"],
+    [data-testid="stVerticalBlockBorderWrapper"] > div[data-testid="stVerticalBlock"] {{
         background-color: #FFFFFF !important;
         border: 1px solid #DFE1E6 !important;
         border-radius: 4px !important;
         box-shadow: 0 1px 2px rgba(9, 30, 66, 0.25) !important;
         padding: 8px 10px !important;
         transition: background-color 0.2s ease !important;
-        margin-bottom: 8px !important;
-    }
+    }}
 
     /* カードのホバーアニメーション（背景色のみ変化） */
-    div[data-testid="stVerticalBlockBorderWrapper"]:hover {
+    [data-testid="stVerticalBlockBorderWrapper"]:hover,
+    [data-testid="stVerticalBlockBorderWrapper"]:hover > div[data-testid="stVerticalBlock"] {{
         background-color: #F4F5F7 !important;
-        transform: none !important;
-        box-shadow: 0 1px 2px rgba(9, 30, 66, 0.25) !important;
-    }
+    }}
 
     /* ホバー時の左端線(前回のアニメーション)を消去 */
-    div[data-testid="stVerticalBlockBorderWrapper"]::before {
+    [data-testid="stVerticalBlockBorderWrapper"]::before {{
         display: none !important;
-    }
+    }}
 
     /* ヘッダーの非表示化などの不要な線の削除 */
-    header[data-testid="stHeader"] {
+    header[data-testid="stHeader"] {{
         background: transparent !important;
-    }
+    }}
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
