@@ -1,183 +1,162 @@
 import streamlit as st
 import database
 import importlib
+import datetime
 
-# Streamlit Cloudのモジュールキャッシュ起因のエラーを防ぐため、常に最新のモジュールを読み込む
+# モジュールキャッシュクリア
 importlib.reload(database)
 
-st.set_page_config(page_title="Kanban Backlog", page_icon="📌", layout="wide")
+# 1. ページ設定（Backlog風のワイドレイアウト）
+st.set_page_config(page_title="Backlog | Kanban", page_icon="📋", layout="wide")
 
-def inject_custom_css():
-    import datetime
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+def inject_backlog_css():
+    """
+    Backlogの質感を再現するための超強力なCSS注入
+    """
+    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     css = f"""
     <style>
-    /* updated_at: {timestamp} */
-
-    /* 1. 全体背景 (Config.tomlの二重定義 + 広域ターゲット) */
-    html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"], .stApp {{
+    /* Cache Buster: {timestamp} */
+    
+    /* 全体の背景色をBacklog風の薄グレーに強制 */
+    .stApp, [data-testid="stAppViewContainer"] {{
         background-color: #F4F5F7 !important;
+    }}
+
+    /* ヘッダー（タイトル部分）の装飾 */
+    .main-title {{
+        font-size: 24px !important;
+        font-weight: 700 !important;
         color: #172B4D !important;
-        font-family: 'Inter', system-ui, sans-serif !important;
+        border-bottom: 2px solid #0078D4;
+        padding-bottom: 10px;
+        margin-bottom: 25px;
     }}
 
-    /* 2. レーン（カラム）のUI設計 */
-    /* Streamlitのカラム要素全体を強制的に塗りつぶす */
-    [data-testid="stColumn"], div[data-testid="stColumn"] > div {{
+    /* カンバンカラム（レーン）の装飾 */
+    [data-testid="stColumn"] {{
         background-color: #EBECF0 !important;
-        border-radius: 6px !important;
-        padding: 8px !important;
+        border-radius: 8px !important;
+        padding: 15px !important;
+        min-height: 80vh;
     }}
 
-    /* カラムタイトルのフォント調整 */
-    [data-testid="stColumn"] h3 {{
-        font-size: 14px !important;
-        font-weight: 600 !important;
-        color: #5E6C84 !important;
-        margin-bottom: 12px !important;
-        letter-spacing: normal !important;
-    }}
-
-    /* 3. タスクカードのUI設計 */
-    /* stVerticalBlockBorderWrapper または 内側のstVerticalBlock を狙う */
-    [data-testid="stVerticalBlockBorderWrapper"],
-    [data-testid="stVerticalBlockBorderWrapper"] > div[data-testid="stVerticalBlock"] {{
+    /* タスクカード（container）の装飾 */
+    [data-testid="stVerticalBlockBorderWrapper"] {{
         background-color: #FFFFFF !important;
         border: 1px solid #DFE1E6 !important;
         border-radius: 4px !important;
-        box-shadow: 0 1px 2px rgba(9, 30, 66, 0.25) !important;
-        padding: 8px 10px !important;
-        transition: background-color 0.2s ease !important;
+        box-shadow: 0 1px 2px rgba(9, 30, 66, 0.2) !important;
+        margin-bottom: 10px !important;
+        padding: 2px !important;
     }}
 
-    /* カードのホバーアニメーション（背景色のみ変化） */
-    [data-testid="stVerticalBlockBorderWrapper"]:hover,
-    [data-testid="stVerticalBlockBorderWrapper"]:hover > div[data-testid="stVerticalBlock"] {{
-        background-color: #F4F5F7 !important;
+    /* サイドバーの簡素化 */
+    section[data-testid="stSidebar"] {{
+        background-color: #2D3E50 !important;
+    }}
+    section[data-testid="stSidebar"] * {{
+        color: #FFFFFF !important;
     }}
 
-    /* ホバー時の左端線(前回のアニメーション)を消去 */
-    [data-testid="stVerticalBlockBorderWrapper"]::before {{
-        display: none !important;
-    }}
-
-    /* ヘッダーの非表示化などの不要な線の削除 */
-    header[data-testid="stHeader"] {{
-        background: transparent !important;
+    /* デバッグ用：バージョン情報のフローティング表示 */
+    .version-tag {{
+        position: fixed;
+        top: 10px;
+        right: 70px;
+        background: #0078D4;
+        color: white;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 10px;
+        z-index: 9999;
     }}
     </style>
+    <div class="version-tag">System Ver: 2.5 (Backlog Mode Active)</div>
     """
     st.markdown(css, unsafe_allow_html=True)
 
-# ページ設定の直後にCSSを注入
-inject_custom_css()
-
 def main():
-    st.title("📌 Kanban Backlog Management")
+    inject_backlog_css()
+    
+    # 生存確認用のタイトル
+    st.markdown('<h1 class="main-title">📋 プロジェクトボード</h1>', unsafe_allow_html=True)
 
-    # 初期化
     database.init_db()
 
-    # ===============================
-    # 進捗の定量化 (Visual Metrics)
-    # ===============================
+    # メトリクス（進行状況）
     status_counts = database.get_status_counts()
     total_tasks = sum(status_counts.values())
     
-    # [QA] ゼロ除算の回避
-    progress_rate = (status_counts['Done'] / total_tasks * 100) if total_tasks > 0 else 0.0
+    cols_m = st.columns(4)
+    cols_m[0].metric("未完了", status_counts['To Do'])
+    cols_m[1].metric("処理中", status_counts['Doing'])
+    cols_m[2].metric("完了", status_counts['Done'])
+    if total_tasks > 0:
+        progress = status_counts['Done'] / total_tasks
+        st.progress(progress)
 
-    st.header("📊 進行状況")
-    col_metric1, col_metric2, col_metric3, col_metric4 = st.columns(4)
-    col_metric1.metric("総タスク数", total_tasks)
-    col_metric2.metric("To Do", status_counts['To Do'])
-    col_metric3.metric("Doing", status_counts['Doing'])
-    col_metric4.metric("Done", status_counts['Done'])
-
-    st.progress(progress_rate / 100.0)
-    st.write(f"**進捗率 (Doneの割合):** {progress_rate:.1f}%")
-
+    # メインボード
     st.markdown("---")
-
-    # ===============================
-    # サイドバー：タスク追加 & エクスポート
-    # ===============================
-    with st.sidebar:
-        st.header("➕ 新規タスク追加")
-        with st.form("add_task_form", clear_on_submit=True):
-            title = st.text_input("タイトル")
-            priority = st.selectbox("優先度", ["高", "中", "低"])
-            due_date = st.date_input("期限", value=None)
-            description = st.text_area("詳細メモ")
-            assignee = st.text_input("担当者")
-            submitted = st.form_submit_button("追加")
-            
-            if submitted:
-                if title.strip() == "":
-                    st.error("タイトルを入力してください。")
-                else:
-                    due_date_str = str(due_date) if due_date else ""
-                    database.add_task(title.strip(), priority, assignee.strip(), due_date_str, description.strip())
-                    st.success("タスクを追加しました！")
-                    st.rerun()
-
-        st.markdown("---")
-        st.header("📥 データエクスポート")
-        # [QA] 文字化け防止のためUTF-8-SIG形式でエンコードされたデータを利用
-        csv_data = database.get_tasks_csv()
-        st.download_button(
-            label="全タスクをCSVでダウンロード",
-            data=csv_data,
-            file_name="tasks.csv",
-            mime="text/csv",
-            help="Excel等での文字化けを防ぐため、UTF-8-SIG形式でダウンロードされます。"
-        )
-
-    # ===============================
-    # メイン画面：カンバンボード
-    # ===============================
-    st.header("📋 タスクボード")
     cols = st.columns(3)
     statuses = ["To Do", "Doing", "Done"]
-
     tasks = database.get_tasks()
 
     for col, status in zip(cols, statuses):
         with col:
-            st.subheader(f"{status} ({status_counts[status]})")
+            # カラムヘッダー
+            st.markdown(f"### {status} `{status_counts[status]}`")
             
-            # ステータスごとのタスクを抽出
             status_tasks = [t for t in tasks if t['status'] == status]
-            
             for task in status_tasks:
+                # カード本体
                 with st.container(border=True):
+                    # タイトルとID風表示
                     st.markdown(f"**{task['title']}**")
                     
-                    color_map = {"高": "red", "中": "orange", "低": "blue"}
-                    p_color = color_map.get(task['priority'], "gray")
-                    st.markdown(f"優先度: <span style='color:{p_color}; font-weight:bold;'>{task['priority']}</span> | 担当者: {task['assignee']}", unsafe_allow_html=True)
+                    # 担当者と優先度（Backlog風ラベル）
+                    p_colors = {"高": "#F14C4C", "中": "#F5A623", "低": "#0078D4"}
+                    p_color = p_colors.get(task['priority'], "#5E6C84")
+                    
+                    st.markdown(f"""
+                        <div style="font-size: 12px; color: #5E6C84;">
+                            <span style="background: {p_color}; color: white; padding: 1px 6px; border-radius: 3px;">{task['priority']}</span>
+                            &nbsp;👤 {task['assignee']}
+                        </div>
+                    """, unsafe_allow_html=True)
                     
                     if task.get('due_date'):
-                        st.write(f"📅 期限: {task['due_date']}")
-                    if task.get('description'):
-                        st.caption(f"📝 {task['description']}")
+                        st.caption(f"📅 {task['due_date']}")
                     
-                    # ステータス変更
-                    new_status = st.selectbox(
-                        "ステータス",
-                        options=statuses,
-                        index=statuses.index(task['status']),
-                        key=f"status_{task['id']}"
-                    )
-                    
-                    if new_status != task['status']:
-                        database.update_task_status(task['id'], new_status)
-                        st.rerun()
+                    # 操作系
+                    with st.expander("操作"):
+                        new_status = st.selectbox(
+                            "移動:", statuses, 
+                            index=statuses.index(task['status']),
+                            key=f"status_{task['id']}"
+                        )
+                        if new_status != task['status']:
+                            database.update_task_status(task['id'], new_status)
+                            st.rerun()
+                        
+                        if st.button("削除", key=f"del_{task['id']}", type="secondary"):
+                            database.delete_task(task['id'])
+                            st.rerun()
 
-                    # 削除ボタン
-                    if st.button("削除", key=f"delete_{task['id']}", type="primary"):
-                        database.delete_task(task['id'])
-                        st.rerun()
+    # サイドバー
+    with st.sidebar:
+        st.title("Settings")
+        with st.form("add"):
+            st.subheader("新規課題")
+            t = st.text_input("件名")
+            p = st.selectbox("優先度", ["高", "中", "低"])
+            a = st.text_input("担当者")
+            d = st.date_input("期限")
+            desc = st.text_area("内容")
+            if st.form_submit_button("追加"):
+                if t:
+                    database.add_task(t, p, a, str(d), desc)
+                    st.rerun()
 
 if __name__ == "__main__":
     main()
