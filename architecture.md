@@ -1,22 +1,27 @@
 # Architect: Architecture & Implementation Strategy
 
 ## Structural Design
-The Kanban application structure remains standard for a Streamlit app, relying on `app.py` as the entry point and `database.py` for SQLite interactions. 
-To implement the "Antigravity Minimalist" design without conflicting with Streamlit's virtual DOM or standard components, we inject global CSS via `st.markdown(..., unsafe_allow_html=True)`.
+The Kanban application structure remains standard for a Streamlit app. The UI redesign focuses entirely on styling overrides using Streamlit's official mechanisms (`.streamlit/config.toml`) and custom CSS injected via `st.markdown(..., unsafe_allow_html=True)`.
 
 ### Component Modifications
-1. **Global CSS Injection**: 
-   A new function `inject_custom_css()` will be added to `app.py`. It holds the precise CSS blocks needed for the redesign.
-2. **Streamlit Columns (Lanes)**:
-   Targeted via `div[data-testid="stColumn"]`. These represent the To Do, Doing, and Done lanes.
-3. **Streamlit Containers (Cards)**:
-   Targeted via `div[data-testid="stVerticalBlockBorderWrapper"]`. We rely on `st.container(border=True)` generating this wrapper, overriding its border, and giving it the floating shadow and hover effects.
-4. **Typography & Layout**:
-   Applied to `.stApp` and `.stMarkdown`.
+1. **Streamlit Config (`.streamlit/config.toml`)**:
+   Sets the global theme colors:
+   - `primaryColor` = "#172B4D"
+   - `backgroundColor` = "#F4F5F7"
+   - `secondaryBackgroundColor` = "#EBECF0"
+   - `textColor` = "#172B4D"
+   - `font` = "sans serif"
+
+2. **Global CSS Injection (`app.py`)**:
+   Updates `inject_custom_css()` to apply the Backlog-style flat design.
+   - **App Background (`.stApp`)**: Enforces `#F4F5F7` and basic text color `#172B4D`.
+   - **Streamlit Columns (`div[data-testid="stColumn"]`)**: Enforces `#EBECF0`, `border-radius: 6px`, and `padding: 8px`.
+   - **Column Headers (`div[data-testid="stColumn"] h3`)**: Enforces `font-size: 14px`, `font-weight: 600`, and `color: #5E6C84`.
+   - **Streamlit Containers (`div[data-testid="stVerticalBlockBorderWrapper"]`)**: Enforces `#FFFFFF`, `border-radius: 4px`, `border: 1px solid #DFE1E6`, `box-shadow: 0 1px 2px rgba(9, 30, 66, 0.25)`, and `padding: 8px 10px`.
+   - **Container Hover Effect**: Changes background to `#F4F5F7` and overrides any previous transform styles.
 
 ## Verification (CrossReference)
-- **Target Best Practices**: Instead of overriding all elements randomly, the CSS targets specific data-testids which are the Streamlit standard for column (`stColumn`) and bordered block (`stVerticalBlockBorderWrapper`).
-- **Standard Library Spec**: Using `st.markdown` with `unsafe_allow_html=True` is the official Streamlit workaround for global styles.
-- **Consistency**: This approach avoids breaking Streamlit's built-in widget event handlers (like click on selectboxes or buttons), while fully controlling their outer containers' appearances.
+- **Target Best Practices**: Instead of overriding all elements randomly, the CSS explicitly targets `stColumn` and `stVerticalBlockBorderWrapper`. `!important` flags ensure that Streamlit's dynamically generated inline styles are overridden consistently.
+- **Consistency**: The color palette adheres strictly to the provided flat design specifications without deviating.
 
-**Verdict**: The architectural strategy aligns perfectly with Streamlit constraints and effectively implements the minimalist design.
+**Verdict**: The architectural strategy reliably implements the target Backlog-style UI.

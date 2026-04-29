@@ -1,35 +1,32 @@
 # PM: Requirements Document
 
 ## Goal
-現在のStreamlitベースのカンバンツールを、デザイン案「Antigravity Minimalist」に準拠した、超軽量かつ洗練されたモダンUIに刷新する。
+Streamlit製カンバンツールのUIを、日本の代表的なプロジェクト管理ツール（Backlog風）の、視認性が高く実用的なフラットデザインに全面的に刷新する。
 
-## Core Principles
-1. **Frictionless**: ユーザーやエージェントの思考を妨げる不要な境界線、強い色、重い装飾を排除。
-2. **Airy**: 余白（Margin/Padding）を大胆に取り、情報が「浮いている」ような浮遊感を作る。
-3. **Monochromatic**: 基本は白・オフホワイト・薄いグレー。アクセントカラーは #00A3FF (Antigravity Blue) のみ。
-
-## Quantitative / Technical Specifications (CSS & UI)
-- **Background**: 全体の背景色 (`.stApp`) を `#FAFAFA` に設定。
-- **Card**:
-  - `border` を無効化 (`border: none`)。
-  - `border-radius: 12px` を適用。
-  - `box-shadow: 0 4px 12px rgba(0,0,0,0.03)` を付与。
-  - 背景色を `#FFFFFF` に設定。
-- **Lane (Column)**:
-  - 各カラム背景色 (`[data-testid="stColumn"]`) を `rgba(0,0,0,0.02)` に設定。
-  - カラムタイトルのフォントウェイトを `600`、文字間隔(`letter-spacing`)を `0.05em` 等に設定。
-- **Font**:
-  - `font-family` に `Inter, system-ui, sans-serif` 等を指定。
-- **Animations**:
-  - カードホバー時に `transform: translateY(-2px)` で浮き上がるような `transition` を付与。
-  - ホバー時にカードの左端に `4px` の `#00A3FF` (Antigravity Blue) のボーダーを表示する。
+## Specifications
+1. **カラーパレット (Theme)**
+   - 全体背景: `#F4F5F7`
+   - カラム背景: `#EBECF0`
+   - タスクカード背景: `#FFFFFF`
+   - テキスト基本色: `#172B4D`
+2. **レーン（カラム）**
+   - 背景色: `#EBECF0`
+   - 形状: `border-radius: 6px;`
+   - 余白: 内側 `8px`
+   - タイトル: `font-size: 14px; font-weight: 600; color: #5E6C84;`
+3. **タスクカード**
+   - 背景と形状: 背景 `#FFFFFF`, `border-radius: 4px;`
+   - 境界線: `border: 1px solid #DFE1E6;`
+   - 影: `box-shadow: 0 1px 2px rgba(9, 30, 66, 0.25);`
+   - ホバー時: `background-color: #F4F5F7;`
+   - 余白: `padding: 8px 10px;`
 
 ## Verification (CoVe)
-- Q1: `st.container(border=True)` を使用した場合のCSSセレクタはStreamlitのDOMに適合しているか？
-  - A1: はい。Streamlit 1.30+ では `[data-testid="stVerticalBlockBorderWrapper"]` 等の属性が付与されます。
-- Q2: ホバー時の左端ボーダーは実装可能か？
-  - A2: `::before` 疑似要素を使用し、`position: absolute; left: 0; width: 4px;` とすることでレイアウトシフトを防ぎつつ実装可能です。
-- Q3: ゼロ除算等の既存の論理は維持されるか？
-  - A3: 本要件はUIスタイリングに特化しており、バックエンド（Python側のロジック）は完全に維持されます。
+- Q1: `padding: 8px 10px` などの指定はStreamlit内で他の要素との競合を引き起こさないか？
+  - A1: ターゲットを `div[data-testid="stVerticalBlockBorderWrapper"]` に絞ることで、他の内部ウィジェットを壊すことなくコンテナの余白を制御可能です。
+- Q2: `border: 1px solid #DFE1E6` は `st.container(border=True)` のデフォルトボーダーを上書きできるか？
+  - A2: `!important` を付与することで確実に上書き可能です。
+- Q3: `.streamlit/config.toml` の変更とCSSの変更に競合はないか？
+  - A3: `config.toml` がベースのスタイルを提供し、CSSが詳細な構造（レーンやカード）のスタイルを補完・上書きするため、相互補完的に機能します。
 
-**Verdict**: The requirements are logically sound and technically feasible using Streamlit's custom HTML/CSS injection.
+**Verdict**: The requirements are logically sound and technically feasible.

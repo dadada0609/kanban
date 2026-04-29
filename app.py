@@ -10,62 +10,51 @@ st.set_page_config(page_title="Kanban Backlog", page_icon="📌", layout="wide")
 def inject_custom_css():
     css = """
     <style>
-    /* Frictionless & Airy: 全体背景 */
+    /* 全体背景と基本テキスト */
     .stApp {
-        background-color: #FAFAFA !important;
+        background-color: #F4F5F7 !important;
+        color: #172B4D !important;
         font-family: 'Inter', system-ui, sans-serif !important;
     }
 
-    /* レーン（カラム）: 薄いグレー背景、パディング */
+    /* レーン（カラム）: 少し濃いグレー背景、パディング */
     div[data-testid="stColumn"] {
-        background-color: rgba(0,0,0,0.02) !important;
-        border-radius: 16px !important;
-        padding: 24px 16px !important;
+        background-color: #EBECF0 !important;
+        border-radius: 6px !important;
+        padding: 8px !important;
         margin-top: 16px !important;
     }
 
     /* カラムタイトルのフォント調整 */
     div[data-testid="stColumn"] h3 {
+        font-size: 14px !important;
         font-weight: 600 !important;
-        letter-spacing: 0.05em !important;
-        color: #333333 !important;
-        margin-bottom: 16px !important;
+        color: #5E6C84 !important;
+        margin-bottom: 12px !important;
+        letter-spacing: normal !important;
     }
 
-    /* カード（st.container(border=True)のラッパー）: ボーダーなし、白背景、薄い影 */
+    /* カード（st.container(border=True)のラッパー）: フラットデザイン、実用的な角丸 */
     div[data-testid="stVerticalBlockBorderWrapper"] {
-        border: none !important;
-        border-radius: 12px !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
         background-color: #FFFFFF !important;
-        padding: 8px !important;
-        transition: all 0.3s ease !important;
-        position: relative !important;
-        overflow: hidden !important;
-        margin-bottom: 16px !important;
+        border: 1px solid #DFE1E6 !important;
+        border-radius: 4px !important;
+        box-shadow: 0 1px 2px rgba(9, 30, 66, 0.25) !important;
+        padding: 8px 10px !important;
+        transition: background-color 0.2s ease !important;
+        margin-bottom: 8px !important;
     }
 
-    /* カードのホバーアニメーション（浮遊感とAntigravity Blue） */
+    /* カードのホバーアニメーション（背景色のみ変化） */
     div[data-testid="stVerticalBlockBorderWrapper"]:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.05) !important;
+        background-color: #F4F5F7 !important;
+        transform: none !important;
+        box-shadow: 0 1px 2px rgba(9, 30, 66, 0.25) !important;
     }
 
-    /* カード左端のAntigravity Blue線（ホバー時） */
+    /* ホバー時の左端線(前回のアニメーション)を消去 */
     div[data-testid="stVerticalBlockBorderWrapper"]::before {
-        content: '' !important;
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
-        bottom: 0 !important;
-        width: 4px !important;
-        background-color: transparent !important;
-        transition: background-color 0.3s ease !important;
-        z-index: 10 !important;
-    }
-
-    div[data-testid="stVerticalBlockBorderWrapper"]:hover::before {
-        background-color: #00A3FF !important;
+        display: none !important;
     }
 
     /* ヘッダーの非表示化などの不要な線の削除 */
