@@ -7,8 +7,80 @@ importlib.reload(database)
 
 st.set_page_config(page_title="Kanban Backlog", page_icon="📌", layout="wide")
 
+def inject_custom_css():
+    css = """
+    <style>
+    /* Frictionless & Airy: 全体背景 */
+    .stApp {
+        background-color: #FAFAFA !important;
+        font-family: 'Inter', system-ui, sans-serif !important;
+    }
+
+    /* レーン（カラム）: 薄いグレー背景、パディング */
+    div[data-testid="stColumn"] {
+        background-color: rgba(0,0,0,0.02) !important;
+        border-radius: 16px !important;
+        padding: 24px 16px !important;
+        margin-top: 16px !important;
+    }
+
+    /* カラムタイトルのフォント調整 */
+    div[data-testid="stColumn"] h3 {
+        font-weight: 600 !important;
+        letter-spacing: 0.05em !important;
+        color: #333333 !important;
+        margin-bottom: 16px !important;
+    }
+
+    /* カード（st.container(border=True)のラッパー）: ボーダーなし、白背景、薄い影 */
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        border: none !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+        background-color: #FFFFFF !important;
+        padding: 8px !important;
+        transition: all 0.3s ease !important;
+        position: relative !important;
+        overflow: hidden !important;
+        margin-bottom: 16px !important;
+    }
+
+    /* カードのホバーアニメーション（浮遊感とAntigravity Blue） */
+    div[data-testid="stVerticalBlockBorderWrapper"]:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.05) !important;
+    }
+
+    /* カード左端のAntigravity Blue線（ホバー時） */
+    div[data-testid="stVerticalBlockBorderWrapper"]::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background-color: transparent;
+        transition: background-color 0.3s ease;
+        z-index: 10;
+    }
+
+    div[data-testid="stVerticalBlockBorderWrapper"]:hover::before {
+        background-color: #00A3FF;
+    }
+
+    /* ヘッダーの非表示化などの不要な線の削除 */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+    }
+    </style>
+    """
+    st.markdown(css, unsafe_allow_html=True)
+
 def main():
     st.title("📌 Kanban Backlog Management")
+
+    # CSSスタイルの注入
+    inject_custom_css()
 
     # 初期化
     database.init_db()
